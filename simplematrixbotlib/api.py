@@ -253,9 +253,8 @@ class Api:
             raise ValueError("thread_parent_id must be set if thread is True")
 
         if thread:
-            message_source = message.source["content"]
-            if (message_source["m.relates_to"]["rel_type"] == "m.thread"):
-                content={
+            content = (
+                {
                     "msgtype": msgtype,
                     "body": message,
                     "m.relates_to": {
@@ -263,22 +262,11 @@ class Api:
                         "event_id": thread_parent_id,
                     },
                 },
-            else: 
-                content={
-                    "msgtype": msgtype,
-                    "body": message,
-                    "m.relates_to": {
-                        "rel_type": "m.thread",
-                        "event_id": thread_parent_id,
-                        "m.in_reply_to": {"event_id": thread_parent_id},
-                    },
-                },
-        else: 
-            content={"msgtype": msgtype, "body": message}    
-            
-        await self._send_room(
-            room_id=room_id, content=content
-        )
+            )
+        else:
+            content = {"msgtype": msgtype, "body": message}
+
+        await self._send_room(room_id=room_id, content=content)
 
     async def send_markdown_message(self, room_id, message, msgtype="m.text"):
         """
