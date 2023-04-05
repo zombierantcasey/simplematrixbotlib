@@ -8,16 +8,14 @@ from nio.crypto import ENCRYPTION_ENABLED
 
 def _config_dict_factory(tmp) -> dict:
     return {
-        'simplematrixbotlib': {
-            'config':
-            {_strip_leading_underscore(name): value
-             for name, value in tmp}
+        "simplematrixbotlib": {
+            "config": {_strip_leading_underscore(name): value for name, value in tmp}
         }
     }
 
 
 def _strip_leading_underscore(tmp: str) -> str:
-    return tmp[1:] if tmp[0] == '_' else tmp
+    return tmp[1:] if tmp[0] == "_" else tmp
 
 
 def _check_set_regex(value: Set[str]) -> Union[Set[re.Pattern], None]:
@@ -26,9 +24,7 @@ def _check_set_regex(value: Set[str]) -> Union[Set[re.Pattern], None]:
         try:
             tmp = re.compile(v)
         except re.error:
-            print(
-                f"{v} is not a valid regular expression. Ignoring your list update."
-            )
+            print(f"{v} is not a valid regular expression. Ignoring your list update.")
             return None
         new_list.add(tmp)
     return new_list
@@ -43,34 +39,35 @@ class Config:
 
     _join_on_invite: bool = True
     _encryption_enabled: bool = ENCRYPTION_ENABLED
-    _emoji_verify: bool = False  # So users who enable it are aware of required interactivity
+    _emoji_verify: bool = (
+        False  # So users who enable it are aware of required interactivity
+    )
     _ignore_unverified_devices: bool = True  # True by default in Element
     # TODO: auto-ignore/auto-blacklist devices/users
     # _allowed_unverified_devices etc
     _store_path: str = "./store/"
     _allowlist: Set[re.Pattern] = field(
-        default_factory=set)  # TODO: default to bot's homeserver
+        default_factory=set
+    )  # TODO: default to bot's homeserver
     _blocklist: Set[re.Pattern] = field(default_factory=set)
 
     def _load_config_dict(self, config_dict: dict) -> None:
         # TODO: make this into a factory, so defaults for
         # non-loaded values can be set based on loaded values?
-        existing_fields = [
-            _strip_leading_underscore(f.name) for f in fields(self)
-        ]
+        existing_fields = [_strip_leading_underscore(f.name) for f in fields(self)]
         for key, value in config_dict.items():
             if key not in existing_fields:
                 continue
             setattr(self, key, value)
 
     def load_toml(self, file_path: str) -> None:
-        with open(file_path, 'r') as file:
-            config_dict: dict = toml.load(file)['simplematrixbotlib']['config']
+        with open(file_path, "r") as file:
+            config_dict: dict = toml.load(file)["simplematrixbotlib"]["config"]
             self._load_config_dict(config_dict)
 
     def save_toml(self, file_path: str) -> None:
         tmp = asdict(self, dict_factory=_config_dict_factory)
-        with open(file_path, 'w') as file:
+        with open(file_path, "w") as file:
             toml.dump(tmp, file)
 
     @property

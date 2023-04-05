@@ -27,18 +27,16 @@ class MyConfig(botlib.Config):
 
 creds = botlib.Creds("https://home.server", "user", "pass")
 config = MyConfig()
-config.load_toml('config_custom.toml')
+config.load_toml("config_custom.toml")
 bot = botlib.Bot(creds, config)
-PREFIX = '!'
+PREFIX = "!"
 
 
 @bot.listener.on_message_event
 async def get(room, message):
     match = botlib.MessageMatch(room, message, bot, PREFIX)
 
-    if match.is_not_from_this_bot() and match.prefix() and match.command(
-            "get"):
-
+    if match.is_not_from_this_bot() and match.prefix() and match.command("get"):
         await bot.api.send_text_message(room.room_id, config.my_value)
 
 

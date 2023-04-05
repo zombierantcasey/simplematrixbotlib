@@ -1,6 +1,6 @@
 import json
 import asyncio
-from nio import (AsyncClient, SyncResponse, RoomMessageText, AsyncClientConfig)
+from nio import AsyncClient, SyncResponse, RoomMessageText, AsyncClientConfig
 from nio.exceptions import OlmUnverifiedDeviceError
 from nio.responses import UploadResponse
 import nio
@@ -15,14 +15,12 @@ import re
 
 
 async def check_valid_homeserver(homeserver: str) -> bool:
-    if not (homeserver.startswith('http://')
-            or homeserver.startswith('https://')):
+    if not (homeserver.startswith("http://") or homeserver.startswith("https://")):
         return False
 
     async with aiohttp.ClientSession() as session:
         try:
-            async with session.get(
-                    f'{homeserver}/_matrix/client/versions') as response:
+            async with session.get(f"{homeserver}/_matrix/client/versions") as response:
                 if response.status == 200:
                     return True
         except aiohttp.client_exceptions.ClientConnectorError:
@@ -37,11 +35,12 @@ def split_mxid(mxid: str) -> Union[Tuple[str, str], Tuple[None, None]]:
     #     return None, None
     # s[0] = s[0][1:]
     match = re.match(
-        r'@(?P<localpart>[^:]*):(?P<hostname>(?P<ipv4>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})|(?P<ipv6>\[[\da-fA-F:.]{2,45}\])|(?P<dns>[a-zA-Z\d\-.]{1,255}))(?P<port>:\d{1,5})?',
-        mxid)
+        r"@(?P<localpart>[^:]*):(?P<hostname>(?P<ipv4>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})|(?P<ipv6>\[[\da-fA-F:.]{2,45}\])|(?P<dns>[a-zA-Z\d\-.]{1,255}))(?P<port>:\d{1,5})?",
+        mxid,
+    )
     if match is None:
         return None, None
-    return match.group('localpart'), match.group('hostname')
+    return match.group("localpart"), match.group("hostname")
 
 
 class Api:
@@ -79,8 +78,9 @@ class Api:
             raise ValueError("Missing homeserver")
         if not self.creds.username:
             raise ValueError("Missing Username")
-        if not (self.creds.password or self.creds.login_token
-                or self.creds.access_token):
+        if not (
+            self.creds.password or self.creds.login_token or self.creds.access_token
+        ):
             raise ValueError(
                 "Missing password, login token, access token. Either password, login token or access token must be provided"
             )
@@ -89,31 +89,33 @@ class Api:
             max_limit_exceeded=0,
             max_timeouts=0,
             store_sync_tokens=True,
-            encryption_enabled=self.config.encryption_enabled)
+            encryption_enabled=self.config.encryption_enabled,
+        )
         store_path = self.config.store_path
         os.makedirs(store_path, mode=0o750, exist_ok=True)
-        self.async_client = AsyncClient(homeserver=self.creds.homeserver,
-                                        user=self.creds.username,
-                                        device_id=self.creds.device_id,
-                                        store_path=store_path,
-                                        config=client_config)
+        self.async_client = AsyncClient(
+            homeserver=self.creds.homeserver,
+            user=self.creds.username,
+            device_id=self.creds.device_id,
+            store_path=store_path,
+            config=client_config,
+        )
 
         if self.creds.access_token:
             self.async_client.access_token = self.creds.access_token
 
             async with aiohttp.ClientSession() as session:
                 async with session.get(
-                        f'{self.creds.homeserver}/_matrix/client/r0/account/whoami?access_token={self.creds.access_token}'
+                    f"{self.creds.homeserver}/_matrix/client/r0/account/whoami?access_token={self.creds.access_token}"
                 ) as response:
                     if isinstance(response, nio.responses.LoginError):
                         raise Exception(response)
 
                     r = json.loads(
-                        (await
-                         response.text()).replace(":false,", ":\"false\","))
-                    device_id = r['device_id']
-                    self.async_client.user_id, user_id = (r['user_id'],
-                                                          r['user_id'])
+                        (await response.text()).replace(":false,", ':"false",')
+                    )
+                    device_id = r["device_id"]
+                    self.async_client.user_id, user_id = (r["user_id"], r["user_id"])
 
             if self.creds.username == split_mxid(user_id)[0]:
                 # save full MXID
@@ -133,19 +135,27 @@ class Api:
                             f"Given device ID (session ID) '{device_id}' does not match the access token. "
                             "This is critical, because it may break your verification status unintentionally. "
                             "Fix this by providing the correct credentials matching the stored session "
-                            f"{self.creds._session_stored_file}.")
+                            f"{self.creds._session_stored_file}."
+                        )
                     else:
-                        print("First run with access token. "
-                              "Saving device ID (session ID)...")
+                        print(
+                            "First run with access token. "
+                            "Saving device ID (session ID)..."
+                        )
                         self.creds.device_id, self.async_client.device_id = (
-                            device_id, device_id)
+                            device_id,
+                            device_id,
+                        )
                         self.creds.session_write_file()
                 else:
                     print(
                         "Loaded device ID (session ID) does not match the access token. "
-                        "Recovering automatically...")
+                        "Recovering automatically..."
+                    )
                     self.creds.device_id, self.async_client.device_id = (
-                        device_id, device_id)
+                        device_id,
+                        device_id,
+                    )
                     self.creds.session_write_file()
 
             if self.config.encryption_enabled:
@@ -154,13 +164,13 @@ class Api:
         else:
             if self.creds.password:
                 resp = await self.async_client.login(
-                    password=self.creds.password,
-                    device_name=self.creds.device_name)
+                    password=self.creds.password, device_name=self.creds.device_name
+                )
 
             elif self.creds.login_token:
                 resp = await self.async_client.login(
-                    token=self.creds.login_token,
-                    device_name=self.creds.device_name)
+                    token=self.creds.login_token, device_name=self.creds.device_name
+                )
 
             else:
                 raise ValueError(
@@ -176,18 +186,21 @@ class Api:
         if self.async_client.should_upload_keys:
             await self.async_client.keys_upload()
 
-    async def _send_room(self,
-                         room_id,
-                         content,
-                         message_type="m.room.message",
-                         ignore_unverified_devices=None):
+    async def _send_room(
+        self,
+        room_id,
+        content,
+        message_type="m.room.message",
+        ignore_unverified_devices=None,
+    ):
         try:
             await self.async_client.room_send(
                 room_id=room_id,
                 message_type=message_type,
                 content=content,
                 ignore_unverified_devices=ignore_unverified_devices
-                or self.config.ignore_unverified_devices)
+                or self.config.ignore_unverified_devices,
+            )
         except OlmUnverifiedDeviceError as e:
             # print(str(e))
             print(
@@ -198,10 +211,12 @@ class Api:
             for user in self.async_client.rooms[room_id].users:
                 unverified: List[str] = list()
                 for device_id, device in self.async_client.olm.device_store[
-                        user].items():
-                    if not (self.async_client.olm.is_device_verified(device) or
-                            self.async_client.olm.is_device_blacklisted(device)
-                            ):
+                    user
+                ].items():
+                    if not (
+                        self.async_client.olm.is_device_verified(device)
+                        or self.async_client.olm.is_device_blacklisted(device)
+                    ):
                         self.async_client.olm.blacklist_device(device)
                         unverified.append(device_id)
                 if len(unverified) > 0:
@@ -212,9 +227,12 @@ class Api:
                 message_type=message_type,
                 content=content,
                 ignore_unverified_devices=ignore_unverified_devices
-                or self.config.ignore_unverified_devices)
+                or self.config.ignore_unverified_devices,
+            )
 
-    async def send_text_message(self, room_id, message, msgtype='m.text'):
+    async def send_text_message(
+        self, room_id, message, msgtype="m.text", thread=False, thread_parent_id=None
+    ):
         """
         Send a text message in a Matrix room.
 
@@ -230,13 +248,39 @@ class Api:
             The type of message to send: m.text (default), m.notice, etc
 
         """
-        await self._send_room(room_id=room_id,
-                              content={
-                                  "msgtype": msgtype,
-                                  "body": message
-                              })
 
-    async def send_markdown_message(self, room_id, message, msgtype='m.text'):
+        if thread and not thread_parent_id:
+            raise ValueError("thread_parent_id must be set if thread is True")
+
+        if thread:
+            message_source = message.source["content"]
+            if (message_source["m.relates_to"]["rel_type"] == "m.thread"):
+                content={
+                    "msgtype": msgtype,
+                    "body": message,
+                    "m.relates_to": {
+                        "rel_type": "m.thread",
+                        "event_id": thread_parent_id,
+                    },
+                },
+            else: 
+                content={
+                    "msgtype": msgtype,
+                    "body": message,
+                    "m.relates_to": {
+                        "rel_type": "m.thread",
+                        "event_id": thread_parent_id,
+                        "m.in_reply_to": {"event_id": thread_parent_id},
+                    },
+                },
+        else: 
+            content={"msgtype": msgtype, "body": message}    
+            
+        await self._send_room(
+            room_id=room_id, content=content
+        )
+
+    async def send_markdown_message(self, room_id, message, msgtype="m.text"):
         """
         Send a markdown message in a Matrix room.
 
@@ -253,18 +297,15 @@ class Api:
 
         """
 
-        await self._send_room(room_id=room_id,
-                              content={
-                                  "msgtype":
-                                  msgtype,
-                                  "body":
-                                  message,
-                                  "format":
-                                  "org.matrix.custom.html",
-                                  "formatted_body":
-                                  markdown.markdown(message,
-                                                    extensions=['nl2br'])
-                              })
+        await self._send_room(
+            room_id=room_id,
+            content={
+                "msgtype": msgtype,
+                "body": message,
+                "format": "org.matrix.custom.html",
+                "formatted_body": markdown.markdown(message, extensions=["nl2br"]),
+            },
+        )
 
     async def send_image_message(self, room_id, image_filepath):
         """
@@ -290,7 +331,8 @@ class Api:
                 file,
                 content_type=mime_type,
                 filename=os.path.basename(image_filepath),
-                filesize=file_stat.st_size)
+                filesize=file_stat.st_size,
+            )
         if isinstance(resp, UploadResponse):
             pass  # Successful upload
         else:
@@ -304,10 +346,10 @@ class Api:
                 "thumbnail_info": None,
                 "w": width,
                 "h": height,
-                "thumbnail_url": None
+                "thumbnail_url": None,
             },
             "msgtype": "m.image",
-            "url": resp.content_uri
+            "url": resp.content_uri,
         }
 
         try:
@@ -336,7 +378,8 @@ class Api:
                 file,
                 content_type=mime_type,
                 filename=os.path.basename(video_filepath),
-                filesize=file_stat.st_size)
+                filesize=file_stat.st_size,
+            )
 
         if isinstance(resp, UploadResponse):
             pass  # Successful upload
@@ -348,10 +391,10 @@ class Api:
             "info": {
                 "size": file_stat.st_size,
                 "mimetype": mime_type,
-                "thumbnail_info": None
+                "thumbnail_info": None,
             },
             "msgtype": "m.video",
-            "url": resp.content_uri
+            "url": resp.content_uri,
         }
 
         try:

@@ -25,7 +25,7 @@ import simplematrixbotlib as botlib
 creds = botlib.Creds("https://example.org", "hight_five_bot", "secretpassword")
 bot = botlib.Bot(creds)
 
-PREFIX = '!'
+PREFIX = "!"
 
 try:
     with open("high_fives.txt", "r") as f:
@@ -51,34 +51,43 @@ async def bot_help(room, message):
                 description: show amount of high fives
                 """
     match = botlib.MessageMatch(room, message, bot, PREFIX)
-    if match.is_not_from_this_bot() and match.prefix() and (
-            match.command("help") or match.command("?") or match.command("h")):
+    if (
+        match.is_not_from_this_bot()
+        and match.prefix()
+        and (match.command("help") or match.command("?") or match.command("h"))
+    ):
         await bot.api.send_text_message(room.room_id, bot_help_message)
 
 
 @bot.listener.on_message_event
 async def high_five(room, message):
     match = botlib.MessageMatch(room, message, bot, PREFIX)
-    if match.is_not_from_this_bot() and match.prefix() and (
-            match.command("high_five") or match.command("hf")):
-
+    if (
+        match.is_not_from_this_bot()
+        and match.prefix()
+        and (match.command("high_five") or match.command("hf"))
+    ):
         bot.total_high_fives += 1
         with open("high_fives.txt", "w") as f:
             f.write(str(bot.total_high_fives))
 
         await bot.api.send_text_message(
-            room.room_id, f"{message.sender} high-fived the bot!")
+            room.room_id, f"{message.sender} high-fived the bot!"
+        )
 
 
 @bot.listener.on_message_event
 async def high_five_count(room, message):
     match = botlib.MessageMatch(room, message, bot, PREFIX)
-    if match.is_not_from_this_bot() and match.prefix() and (
-            match.command("count") or match.command("how_many")
-            or match.command("c")):
+    if (
+        match.is_not_from_this_bot()
+        and match.prefix()
+        and (match.command("count") or match.command("how_many") or match.command("c"))
+    ):
         await bot.api.send_text_message(
             room.room_id,
-            f"The bot has been high-fived {str(bot.total_high_fives)} times!")
+            f"The bot has been high-fived {str(bot.total_high_fives)} times!",
+        )
 
 
 bot.run()

@@ -16,10 +16,10 @@ class Match:
         ----------
         room : nio.rooms.MatrixRoom
             The bot developer will use the room parameter of the handler function for this.
-    
+
         event : nio.events.room_events.Event
             The bot developer will use the event parameter of the handler function for this.
-        
+
         bot : simplematrixbotlib.Bot
             The bot developer will use the bot's instance of the simplematrixbotlib.Bot class for this.
 
@@ -69,7 +69,7 @@ class Match:
 
     def is_not_from_this_bot(self):
         """
-        
+
         Returns
         -------
         boolean
@@ -96,10 +96,10 @@ class MessageMatch(Match):
         ----------
         room : nio.rooms.MatrixRoom
             The bot developer will use the room parameter of the handler function for this.
-    
+
         event : nio.events.room_events.Event
             The bot developer will use the event parameter of the handler function for this.
-        
+
         bot : simplematrixbotlib.Bot
             The bot developer will use the bot's instance of the simplematrixbotlib.Bot class for this.
 
@@ -124,13 +124,13 @@ class MessageMatch(Match):
         -------
         boolean
             Returns True if the string after the prefix and before the first space is the same as the given arg.
-        
+
         str
             Returns the string after the prefix and before the first space if no arg is passed to this method.
         """
 
-        if self._prefix == self.event.body[0:len(self._prefix)]:
-            body_without_prefix = self.event.body[len(self._prefix):]
+        if self._prefix == self.event.body[0 : len(self._prefix)]:
+            body_without_prefix = self.event.body[len(self._prefix) :]
         else:
             body_without_prefix = self.event.body
 
@@ -138,9 +138,11 @@ class MessageMatch(Match):
             return []
 
         if command:
-            return (body_without_prefix.split()[0] == command
-                    if case_sensitive else
-                    body_without_prefix.split()[0].lower() == command.lower())
+            return (
+                body_without_prefix.split()[0] == command
+                if case_sensitive
+                else body_without_prefix.split()[0].lower() == command.lower()
+            )
         else:
             return body_without_prefix.split()[0]
 
@@ -157,7 +159,7 @@ class MessageMatch(Match):
 
     def args(self):
         """
-        
+
         Returns
         -------
         list
@@ -168,7 +170,7 @@ class MessageMatch(Match):
 
     def contains(self, string):
         """
-        
+
         Returns
         -------
         boolean

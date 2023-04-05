@@ -20,13 +20,15 @@ class Creds:
 
     """
 
-    def __init__(self,
-                 homeserver,
-                 username=None,
-                 password=None,
-                 login_token=None,
-                 access_token=None,
-                 session_stored_file='session.txt'):
+    def __init__(
+        self,
+        homeserver,
+        username=None,
+        password=None,
+        login_token=None,
+        access_token=None,
+        session_stored_file="session.txt",
+    ):
         """
         Initializes the simplematrixbotlib.Creds class.
 
@@ -68,8 +70,7 @@ class Creds:
         elif self.access_token:
             self._key = fw.key_from_pass(self.access_token)
         else:
-            raise ValueError(
-                "password or login_token or access_token is required")
+            raise ValueError("password or login_token or access_token is required")
 
     def session_read_file(self):
         """
@@ -78,24 +79,30 @@ class Creds:
         """
         if self._session_stored_file:
             try:
-                with open(self._session_stored_file, 'r') as f:
-                    encrypted_session_data = bytes(f.read()[2:-1], 'utf-8')
+                with open(self._session_stored_file, "r") as f:
+                    encrypted_session_data = bytes(f.read()[2:-1], "utf-8")
                     file_exists = True
 
             except FileNotFoundError:
                 file_exists = False
 
             if file_exists:
-                decrypted_session_data = fw.decrypt(
-                    encrypted_session_data,
-                    self._key)[3:-2].replace('\'', '').replace(' ',
-                                                               '').split(",")
+                decrypted_session_data = (
+                    fw.decrypt(encrypted_session_data, self._key)[3:-2]
+                    .replace("'", "")
+                    .replace(" ", "")
+                    .split(",")
+                )
 
                 self.device_id = decrypted_session_data[0]
                 self.access_token = decrypted_session_data[1]
 
-                if not self.device_id or not self.access_token or (
-                        self.device_id == "") or (self.access_token == ""):
+                if (
+                    not self.device_id
+                    or not self.access_token
+                    or (self.device_id == "")
+                    or (self.access_token == "")
+                ):
                     raise ValueError(
                         f"Can't load credentials: device ID '{self.device_id}' or access token '{self.access_token}' were not properly saved. "
                         f"Reset your session by deleting {self._session_stored_file} and the crypto store if encryption is enabled."
@@ -113,7 +120,7 @@ class Creds:
         """
 
         if not self._session_stored_file:
-            print('device_id and access_token will not be saved')
+            print("device_id and access_token will not be saved")
             return
 
         if not (self.device_id and self.access_token):
@@ -129,5 +136,5 @@ class Creds:
 
         encrypted_session_data = fw.encrypt(session_data, self._key)
 
-        with open(self._session_stored_file, 'w') as f:
+        with open(self._session_stored_file, "w") as f:
             f.write(str(encrypted_session_data))

@@ -17,7 +17,6 @@ def test_init():
 
 
 def test_on_custom_event():
-
     @listener.on_custom_event(mock_event)
     def example():
         return "example"
@@ -32,15 +31,13 @@ def test_on_custom_event():
 
 
 def test_on_message_event():
-
     @listener.on_message_event
     def example2():
         return "example2"
 
     def check():
         for func_event in listener._registry:
-            if func_event[0](
-            ) == "example2" and func_event[1] == RoomMessageText:
+            if func_event[0]() == "example2" and func_event[1] == RoomMessageText:
                 return True
         return False
 
@@ -48,7 +45,6 @@ def test_on_message_event():
 
 
 def test_on_startup():
-
     @listener.on_startup
     def example3():
         return "example3"

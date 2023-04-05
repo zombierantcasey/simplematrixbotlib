@@ -17,8 +17,12 @@ match_config = Match(mock_room, mock_event, mock_bot)
 match_config._bot.config = Config()
 match_config._bot.config.load_toml(
     os.path.join(
-        pathlib.Path(__file__).parent.parent, 'config', 'sample_config_files',
-        'config1.toml'))
+        pathlib.Path(__file__).parent.parent,
+        "config",
+        "sample_config_files",
+        "config1.toml",
+    )
+)
 
 
 def test_init():

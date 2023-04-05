@@ -7,8 +7,7 @@ import re
 from dataclasses import dataclass
 from nio.crypto import ENCRYPTION_ENABLED
 
-sample_config_path = os.path.join(
-    pathlib.Path(__file__).parent, 'sample_config_files')
+sample_config_path = os.path.join(pathlib.Path(__file__).parent, "sample_config_files")
 
 
 @dataclass
@@ -50,52 +49,51 @@ def test_defaults():
 def test_read_toml():
     config = botlib.Config()
     # load non-defaults
-    config.load_toml(os.path.join(sample_config_path, 'config1.toml'))
+    config.load_toml(os.path.join(sample_config_path, "config1.toml"))
     assert not config.join_on_invite
     assert set(config.allowlist) == set(
-        map(re.compile, ['.*:example\\.org', '@test:matrix\\.org']))
-    assert set(config.blocklist) == set(
-        map(re.compile, ['@test2:example\\.org']))
+        map(re.compile, [".*:example\\.org", "@test:matrix\\.org"])
+    )
+    assert set(config.blocklist) == set(map(re.compile, ["@test2:example\\.org"]))
     assert config.encryption_enabled
     assert config.emoji_verify
-    assert config.store_path == "./session/" and os.path.isdir(
-        config.store_path)
+    assert config.store_path == "./session/" and os.path.isdir(config.store_path)
     assert not config.ignore_unverified_devices
 
     config = botlib.Config()
     # load defaults
-    config.load_toml(os.path.join(sample_config_path, 'config2.toml'))
+    config.load_toml(os.path.join(sample_config_path, "config2.toml"))
     assert config.join_on_invite
 
     config = botlib.Config()
     # load defaults from an empty config
-    config.load_toml(os.path.join(sample_config_path, 'config3.toml'))
+    config.load_toml(os.path.join(sample_config_path, "config3.toml"))
     assert config.join_on_invite
 
     config = botlib.Config()
     # config4.toml uses invalid regular expression syntax
-    config.load_toml(os.path.join(sample_config_path, 'config4.toml'))
+    config.load_toml(os.path.join(sample_config_path, "config4.toml"))
     assert config.blocklist == set()
 
     config = botlib.Config()
     # config5.toml contains an unsupported field called "custom"
-    config.load_toml(os.path.join(sample_config_path, 'config5.toml'))
+    config.load_toml(os.path.join(sample_config_path, "config5.toml"))
     with pytest.raises(AttributeError):
         assert config.custom is None
 
     config = SimpleConfig()
     # config6.toml contains a custom 'simple_setting' string
-    config.load_toml(os.path.join(sample_config_path, 'config6.toml'))
+    config.load_toml(os.path.join(sample_config_path, "config6.toml"))
     assert config.simple_setting == "Hello World"
 
     config = UpperConfig()
     # config6.toml contains a custom 'simple_setting' string
-    config.load_toml(os.path.join(sample_config_path, 'config6.toml'))
+    config.load_toml(os.path.join(sample_config_path, "config6.toml"))
     assert config.simple_setting == "HELLO WORLD"
 
 
 def test_write_toml():
-    tmp_file = os.path.join(sample_config_path, 'config_tmp.toml')
+    tmp_file = os.path.join(sample_config_path, "config_tmp.toml")
     config = botlib.Config()
     # write all defined values
     config.save_toml(tmp_file)
@@ -106,30 +104,31 @@ def test_write_toml():
         f"encryption_enabled = {'true' if ENCRYPTION_ENABLED else 'false'}\n"
         "emoji_verify = false\n"
         "ignore_unverified_devices = true\n"
-        "store_path = \"./store/\"\n"
+        'store_path = "./store/"\n'
         "allowlist = []\n"
-        "blocklist = []\n")
+        "blocklist = []\n"
+    )
     assert os.path.isfile(tmp_file)
-    with open(tmp_file, 'r') as f:
+    with open(tmp_file, "r") as f:
         assert f.read() == default_values
 
     config.custom = "custom value"
     # don't write custom values
     config.save_toml(tmp_file)
-    with open(tmp_file, 'r') as f:
+    with open(tmp_file, "r") as f:
         assert f.read() == default_values
 
     config = SimpleConfig()
     # write a custom value correctly (underscore etc)
     config.save_toml(tmp_file)
-    with open(tmp_file, 'r') as f:
-        assert "simple_setting = \"Default\"\n" in f.readlines()
+    with open(tmp_file, "r") as f:
+        assert 'simple_setting = "Default"\n' in f.readlines()
 
     config = UpperConfig()
     # write a custom value correctly
     config.save_toml(tmp_file)
-    with open(tmp_file, 'r') as f:
-        assert "simple_setting = \"Default\"\n" in f.readlines()
+    with open(tmp_file, "r") as f:
+        assert 'simple_setting = "Default"\n' in f.readlines()
 
 
 def test_manual_set():
@@ -151,25 +150,27 @@ def test_manual_set():
     assert not config.ignore_unverified_devices
 
     config = botlib.Config()
-    config.allowlist = {'.*:example\\.org'}
-    assert re.compile('.*:example\\.org') in config.allowlist
-    config.add_allowlist({'@test:matrix\\.org'})
+    config.allowlist = {".*:example\\.org"}
+    assert re.compile(".*:example\\.org") in config.allowlist
+    config.add_allowlist({"@test:matrix\\.org"})
     assert config.allowlist == set(
-        map(re.compile, ['.*:example\\.org', '@test:matrix\\.org']))
-    config.remove_allowlist({'.*:example\\.org'})
-    assert config.allowlist == set(map(re.compile, ['@test:matrix\\.org']))
-    config.allowlist = {'*:example\\.org'}
-    assert config.allowlist == set(map(re.compile, ['@test:matrix\\.org']))
+        map(re.compile, [".*:example\\.org", "@test:matrix\\.org"])
+    )
+    config.remove_allowlist({".*:example\\.org"})
+    assert config.allowlist == set(map(re.compile, ["@test:matrix\\.org"]))
+    config.allowlist = {"*:example\\.org"}
+    assert config.allowlist == set(map(re.compile, ["@test:matrix\\.org"]))
 
-    config.blocklist = {'.*:example\\.org'}
-    assert re.compile('.*:example\\.org') in config.blocklist
-    config.add_blocklist({'@test:matrix\\.org'})
+    config.blocklist = {".*:example\\.org"}
+    assert re.compile(".*:example\\.org") in config.blocklist
+    config.add_blocklist({"@test:matrix\\.org"})
     assert config.blocklist == set(
-        map(re.compile, ['.*:example\\.org', '@test:matrix\\.org']))
-    config.remove_blocklist({'.*:example\\.org'})
-    assert config.blocklist == set(map(re.compile, ['@test:matrix\\.org']))
-    config.blocklist = {'*:example\\.org'}
-    assert config.blocklist == set(map(re.compile, ['@test:matrix\\.org']))
+        map(re.compile, [".*:example\\.org", "@test:matrix\\.org"])
+    )
+    config.remove_blocklist({".*:example\\.org"})
+    assert config.blocklist == set(map(re.compile, ["@test:matrix\\.org"]))
+    config.blocklist = {"*:example\\.org"}
+    assert config.blocklist == set(map(re.compile, ["@test:matrix\\.org"]))
 
     config = UpperConfig()
     config.simple_setting = "test"
