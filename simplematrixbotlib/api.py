@@ -254,14 +254,11 @@ class Api:
 
         if thread:
             content = {
-                    "msgtype": msgtype,
-                    "body": message,
-                    "m.relates_to": {
-                        "rel_type": "m.thread",
-                        "event_id": thread_parent_id,
-                    },
-                },
-            
+                "msgtype": msgtype,
+                "body": message,
+                "m.relates_to": {"rel_type": "m.thread", "event_id": thread_parent_id},
+            }
+
         else:
             content = {"msgtype": msgtype, "body": message}
 
