@@ -253,8 +253,7 @@ class Api:
             raise ValueError("thread_parent_id must be set if thread is True")
 
         if thread:
-            content = (
-                {
+            content = {
                     "msgtype": msgtype,
                     "body": message,
                     "m.relates_to": {
@@ -262,7 +261,7 @@ class Api:
                         "event_id": thread_parent_id,
                     },
                 },
-            )
+            
         else:
             content = {"msgtype": msgtype, "body": message}
 
